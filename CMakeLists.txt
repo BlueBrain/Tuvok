@@ -1,77 +1,93 @@
-# This is a CMake file for building/including Tuvok into your own projects.
-# It is meant only as a guide; it sets up only basic options which are specific
-# to Tuvok.  If you need additional settings, it's recommended that you create
-# an external file and use CMake's `include' directive to include this file
-# inline.
-# Still, there are some mechanisms setup to make that task easy.
-#   . Use TUVOK_EXTERNAL_INCLUDES to setup a list of external include
-#     directories.  This is useful if you want to, say, replace Tuvok's
-#     internal copy of GLEW/boost with your own.  This directory gets included
-#     *before* Tuvok's own directories.
-#   . Set TUVOK_IGNORE to a CMake-list of files one doesn't want to use/compile
-#     in their project.
+# Minumum build script for building the Tuvok library needed for Volume Renderer
 
-cmake_minimum_required(VERSION 2.6)
-if(COMMAND CMAKE_POLICY)
-  cmake_policy(VERSION 2.6)
-endif(COMMAND CMAKE_POLICY)
+cmake_minimum_required(VERSION 2.8)
+project(Tuvok)
 
-project(tuvok)
+find_package( Qt4 REQUIRED QtCore QtGui QtXml QtOpenGL )
+find_package( BISON REQUIRED )
+find_package( FLEX REQUIRED )
 
-find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR})
+add_definitions(${QT_DEFINITIONS})
+link_directories( /usr/lib )
 
-include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
-                    Renderer Scripting 3rdParty/GLEW IO/3rdParty/boost
-                    IO/exception IO/expressions
-                    ${QT_INCLUDE_DIR})
+option(SHARED_LIBRARY "Shared library" ON)
 
-# Tuvok will not build as a shared lib.
-set(BUILD_SHARED_LIBS OFF)
+include_directories( ${CMAKE_SOURCE_DIR}
+                     Basics
+                     Controller
+                     DebugOut
+                     Renderer
+                     Scripting
+                     3rdParty/GLEW
+                     IO
+                     IO/UVF
+                     IO/3rdParty/boost
+                     IO/3rdParty/bzip2
+                     IO/3rdParty/jpeglib
+                     IO/3rdParty/lz4
+                     IO/3rdParty/lzham
+                     IO/3rdParty/lzma
+                     IO/3rdParty/tiff
+                     IO/3rdParty/zlib
+                     IO/exception
+                     IO/expressions
+                     ${QT_INCLUDE_DIR} )
 
-set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
-set(TUVOK_INCLUDE
-    "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/3rdParty;${CMAKE_CURRENT_SOURCE_DIR}/IO/3rdParty/boost;${QT_INCLUDE_DIR}"
-    CACHE STRING "Tuvok include directory (Tuvok's source tree root)" FORCE)
-# fPIC is required for libraries.
-if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif(${CMAKE_COMPILER_IS_GNUCXX})
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
 
-# Disable Qt as well.  Needed for now... working on it, slowly.
-#set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
-set(TUVOK_DEFINES -DTUVOK_NO_IO CACHE STRING
-    "Defines needed for building Tuvok in most projects.")
+if( ${CMAKE_COMPILER_IS_GNUCXX} )
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fno-strict-aliasing -fopenmp" )
+endif( ${CMAKE_COMPILER_IS_GNUCXX} )
 
-# Disable IO and Qt within Tuvok.
-add_definitions(${TUVOK_DEFINES})
+# Expressions library
+BISON_TARGET( Parser IO/expressions/tvk-parse.ypp ${CMAKE_BINARY_DIR}/tvk-parse.cpp)
+FLEX_TARGET( Scanner IO/expressions/tvk-scan.lpp ${CMAKE_BINARY_DIR}/tvk-scan.cpp)
+ADD_FLEX_BISON_DEPENDENCY( Scanner Parser )
 
-# Sets the variable TUVOK_SRCS.
-include(.tuvok_srcs)
+set( TUVOK_EXPRESSION_SOURCES  ${CMAKE_BINARY_DIR}/tvk-scan.cpp
+                               ${CMAKE_BINARY_DIR}/tvk-parse.cpp
+                               IO/expressions/binary-expression.cpp
+                               IO/expressions/conditional-expression.cpp
+                               IO/expressions/constant.cpp
+                               IO/expressions/treenode.cpp
+                               IO/expressions/volume.cpp )
 
-if(DEFINED TUVOK_IGNORE)
-  list(REMOVE_ITEM TUVOK_SRCS TUVOK_IGNORE)
-endif(DEFINED TUVOK_IGNORE)
 
-add_library(${TUVOK_LIBRARY} ${TUVOK_SRCS})
-# We try to read shaders from the bundle on Macs, so we need CoreFoundation.
-if(APPLE)
-  target_link_libraries(${TUVOK_LIBRARY} "-framework CoreFoundation")
-endif(APPLE)
-target_link_libraries(${TUVOK_LIBRARY} ${QT_LIBRARIES})
-target_link_libraries(${TUVOK_LIBRARY} ${GL_LIBRARY})
+add_library( TuvokExpressions SHARED ${TUVOK_EXPRESSION_SOURCES} )
+install( TARGETS TuvokExpressions LIBRARY DESTINATION lib )
 
-install(DIRECTORY Shaders
-        DESTINATION ${CMAKE_INSTALL_DIR}/
-        FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                              GROUP_READ
-                              WORLD_READ WORLD_EXECUTE)
-file(COPY Shaders
-     DESTINATION ${CMAKE_BINARY_DIR}/
-     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                           GROUP_READ
-                           WORLD_READ WORLD_EXECUTE)
+# Tuvok library
+
+include(files.cmake)
+
+if( SHARED_LIBRARY )
+   add_library( Tuvok SHARED ${TUVOK_SRCS} )
+else( SHARED_LIBRARY )
+   add_library( Tuvok ${TUVOK_SRCS})
+endif( SHARED_LIBRARY )
+
+macro(INSTALL_HEADERS_WITH_DIRECTORY HEADER_LIST)
+   foreach(HEADER ${${HEADER_LIST}})
+       string(REGEX MATCH "(Tuvok/.*)[/\\]" DIR ${HEADER})
+       if("${DIR}" STREQUAL "")
+          install(FILES ${HEADER} DESTINATION include/Tuvok)
+       else("${DIR}" STREQUAL "")
+          install(FILES ${HEADER} DESTINATION include/${DIR})
+       endif("${DIR}" STREQUAL "")
+   endforeach(HEADER)
+ENDMACRO(INSTALL_HEADERS_WITH_DIRECTORY)
+
+INSTALL_HEADERS_WITH_DIRECTORY( TUVOK_HEADERS )
+
+# TODO external packages should be explicit
+target_link_libraries( Tuvok TuvokExpressions ${QT_LIBRARIES} ${ZLIB_LIBRARY} z pthread  GL GLU gomp )
+
+SET_TARGET_PROPERTIES( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
+install( TARGETS Tuvok LIBRARY DESTINATION lib )
+
+
