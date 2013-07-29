@@ -88,4 +88,4 @@ SET_TARGET_PROPERTIES( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
 
 include(PackageConfig)
-
+add_custom_target(test COMMENT "No tests")
