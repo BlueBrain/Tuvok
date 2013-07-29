@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 2.8)
 project(Tuvok)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
+if(CMAKE_VERSION VERSION_LESS 2.8.8)
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/2.8.8)
+endif()
 
 find_package( Qt4 REQUIRED QtCore QtGui QtXml QtOpenGL )
 find_package( BISON REQUIRED )
