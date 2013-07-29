@@ -78,18 +78,8 @@ else( SHARED_LIBRARY )
    add_library( Tuvok ${TUVOK_SRCS})
 endif( SHARED_LIBRARY )
 
-macro(INSTALL_HEADERS_WITH_DIRECTORY HEADER_LIST)
-   foreach(HEADER ${${HEADER_LIST}})
-       string(REGEX MATCH "(Tuvok/.*)[/\\]" DIR ${HEADER})
-       if("${DIR}" STREQUAL "")
-          install(FILES ${HEADER} DESTINATION include/Tuvok)
-       else("${DIR}" STREQUAL "")
-          install(FILES ${HEADER} DESTINATION include/${DIR})
-       endif("${DIR}" STREQUAL "")
-   endforeach(HEADER)
-ENDMACRO(INSTALL_HEADERS_WITH_DIRECTORY)
-
-INSTALL_HEADERS_WITH_DIRECTORY( TUVOK_HEADERS )
+include(InstallFiles)
+install_files(include/Tuvok FILES ${TUVOK_HEADERS})
 
 # TODO external packages should be explicit
 target_link_libraries( Tuvok TuvokExpressions ${QT_LIBRARIES} ${ZLIB_LIBRARY} z pthread  GL GLU gomp )
