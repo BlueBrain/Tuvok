@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(Tuvok)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
+
 find_package( Qt4 REQUIRED QtCore QtGui QtXml QtOpenGL )
 find_package( BISON REQUIRED )
 find_package( FLEX REQUIRED )
@@ -43,6 +45,8 @@ if( ${CMAKE_COMPILER_IS_GNUCXX} )
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fno-strict-aliasing -fopenmp" )
 endif( ${CMAKE_COMPILER_IS_GNUCXX} )
+
+include(TargetHooks) # needed for PackageConfig
 
 # Expressions library
 BISON_TARGET( Parser IO/expressions/tvk-parse.ypp ${CMAKE_BINARY_DIR}/tvk-parse.cpp)
@@ -90,4 +94,5 @@ target_link_libraries( Tuvok TuvokExpressions ${QT_LIBRARIES} ${ZLIB_LIBRARY} z 
 SET_TARGET_PROPERTIES( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
 
+include(PackageConfig)
 
