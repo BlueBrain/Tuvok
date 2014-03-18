@@ -3,7 +3,10 @@
 #include <GL/glew.h>
 #include "GLCommon.h"
 
+
 using namespace GLCommon;
+
+GLEWContext GLCommon::glewContext;
 
 size_t GLCommon::gl_internal_bit_size(GLenum internalformat) {
   switch(internalformat) {
@@ -25,7 +28,7 @@ size_t GLCommon::gl_internal_bit_size(GLenum internalformat) {
     case GL_ALPHA8 :
     case GL_R8I :
     case GL_R8UI :
-    case GL_RGBA2 : 
+    case GL_RGBA2 :
     case GL_R3_G3_B2 :
     case GL_R8_SNORM :
     case GL_R8 : return 8;
@@ -92,9 +95,9 @@ size_t GLCommon::gl_internal_bit_size(GLenum internalformat) {
     case GL_RGB16UI :
     case GL_RGB16F :
     case GL_RGBA12 :
-    case GL_RGB16 : 
+    case GL_RGB16 :
     case GL_RGB16_SNORM : return 48;
-      
+
     case GL_RGBA16I :
     case GL_RGBA16UI :
     case GL_RG32I :
@@ -109,7 +112,7 @@ size_t GLCommon::gl_internal_bit_size(GLenum internalformat) {
 
     case GL_RGBA32I :
     case GL_RGBA32UI :
-    case GL_RGBA32F : return 128;   
+    case GL_RGBA32F : return 128;
   }
 
   // unnsuported formats

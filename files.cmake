@@ -1,7 +1,4 @@
-set( TUVOK_HEADERS  3rdParty/GLEW/GL/glew.h
-                    3rdParty/GLEW/GL/glxew.h
-                    3rdParty/GLEW/GL/wglew.h
-                    3rdParty/LUA/lapi.h
+set( TUVOK_HEADERS  3rdParty/LUA/lapi.h
                     3rdParty/LUA/lauxlib.h
                     3rdParty/LUA/lcode.h
                     3rdParty/LUA/lctype.h
@@ -268,8 +265,8 @@ set( TUVOK_HEADERS  3rdParty/GLEW/GL/glew.h
                     Basics/LargeFileMMap.h )
 
 
-set(TUVOK_SRCS 3rdParty/GLEW/GL/glew.c
-               3rdParty/LUA/lapi.cpp
+
+set(TUVOK_SRCS 3rdParty/LUA/lapi.cpp
                3rdParty/LUA/lauxlib.cpp
                3rdParty/LUA/lbaselib.cpp
                3rdParty/LUA/lbitlib.cpp

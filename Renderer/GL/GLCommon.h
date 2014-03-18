@@ -9,6 +9,11 @@ namespace GLCommon {
   size_t gl_internal_bit_size(GLenum internalformat);
   size_t gl_components(GLenum format);
   size_t gl_byte_width(GLenum gltype);
+  extern GLEWContext glewContext;
+}
+
+namespace {
+inline GLEWContext* glewGetContext() { return &GLCommon::glewContext; }
 }
 
 /*
