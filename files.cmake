@@ -1,4 +1,5 @@
-set( TUVOK_HEADERS  3rdParty/LUA/lapi.h
+set( TUVOK_HEADERS  StdTuvokDefines.h
+                    3rdParty/LUA/lapi.h
                     3rdParty/LUA/lauxlib.h
                     3rdParty/LUA/lcode.h
                     3rdParty/LUA/lctype.h
