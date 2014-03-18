@@ -1,7 +1,4 @@
-set( TUVOK_HEADERS  3rdParty/GLEW/GL/glew.h
-                    3rdParty/GLEW/GL/glxew.h
-                    3rdParty/GLEW/GL/wglew.h
-                    3rdParty/LUA/lapi.h
+set( TUVOK_HEADERS  3rdParty/LUA/lapi.h
                     3rdParty/LUA/lauxlib.h
                     3rdParty/LUA/lcode.h
                     3rdParty/LUA/lctype.h
@@ -35,8 +32,10 @@ set( TUVOK_HEADERS  3rdParty/GLEW/GL/glew.h
                     Basics/Grids.h
                     Basics/KDTree.h
                     Basics/LargeFile.h
+                    Basics/LargeFileFD.h
                     Basics/LargeFileC.h
                     Basics/LargeRAWFile.h
+                    Basics/LargeFileMMap.h
                     Basics/MathTools.h
                     Basics/MC.h
                     Basics/Mesh.h
@@ -223,53 +222,10 @@ set( TUVOK_HEADERS  3rdParty/GLEW/GL/glew.h
                     LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.h
                     LuaScripting/TuvokSpecific/LuaTuvokTypes.h
                     LuaScripting/TuvokSpecific/MatrixMath.h
-                    Renderer/StateManager.h
-                    Renderer/AbstrRenderer.h
-                    Renderer/Context.h
-                    Renderer/ContextIdentification.h
-                    Renderer/CullingLOD.h
-                    Renderer/FrameCapture.h
-                    Renderer/ShaderDescriptor.h
-                    Renderer/GL/GLCommon.h
-                    Renderer/GL/GLHashTable.h
-                    Renderer/GL/GLStateManager.h
-                    Renderer/GL/GLContext.h
-                    Renderer/GL/GLFrameCapture.h
-                    Renderer/GL/GLInclude.h
-                    Renderer/GL/GLObject.h
-                    Renderer/GL/GLRaycaster.h
-                    Renderer/GL/GLGPURayTraverser.h
-                    Renderer/GL/GLGridLeaper.h
-                    Renderer/GL/GLRenderer.h
-                    Renderer/GL/GLSBVR.h
-                    Renderer/GL/GLSBVR2D.h
-                    Renderer/GL/GLSLProgram.h
-                    Renderer/GL/GLTargetBinder.h
-                    Renderer/GL/GLTexture1D.h
-                    Renderer/GL/GLTexture2D.h
-                    Renderer/GL/GLTexture3D.h
-                    Renderer/GL/GLTexture.h
-                    Renderer/GL/GLVolume.h
-                    Renderer/GL/GLVolume2DTex.h
-                    Renderer/GL/GLVolume3DTex.h
-                    Renderer/GL/QtGLContext.h
-                    Renderer/GL/RenderMeshGL.h
-                    Renderer/GL/GLVolumePool.h
-                    Renderer/GL/GLVBO.h
-                    Renderer/GPUMemMan/GPUMemManDataStructs.h
-                    Renderer/GPUMemMan/GPUMemMan.h
-                    Renderer/GPUObject.h
-                    Renderer/RenderRegion.h
-                    Renderer/TFScaling.h
-                    Renderer/RenderMesh.h
-                    Renderer/VisibilityState.h
-                    StdTuvokDefines.h
-                    Basics/LargeFileFD.h
-                    Basics/LargeFileMMap.h )
+                    )
 
 
-set(TUVOK_SRCS 3rdParty/GLEW/GL/glew.c
-               3rdParty/LUA/lapi.cpp
+set(TUVOK_SRCS 3rdParty/LUA/lapi.cpp
                3rdParty/LUA/lauxlib.cpp
                3rdParty/LUA/lbaselib.cpp
                3rdParty/LUA/lbitlib.cpp
@@ -307,8 +263,10 @@ set(TUVOK_SRCS 3rdParty/GLEW/GL/glew.c
                Basics/EndianFile.cpp
                Basics/GeometryGenerator.cpp
                Basics/LargeRAWFile.cpp
+               Basics/LargeFileFD.cpp
                Basics/LargeFile.cpp
                Basics/LargeFileC.cpp
+               Basics/LargeFileMMap.cpp
                Basics/MathTools.cpp
                Basics/MC.cpp
                Basics/Plane.cpp
@@ -541,43 +499,5 @@ set(TUVOK_SRCS 3rdParty/GLEW/GL/glew.c
                LuaScripting/TuvokSpecific/LuaTransferFun2DProxy.cpp
                LuaScripting/TuvokSpecific/LuaTuvokTypes.cpp
                LuaScripting/TuvokSpecific/MatrixMath.cpp
-               Renderer/AbstrRenderer.cpp
-               Renderer/Context.cpp
-               Renderer/CullingLOD.cpp
-               Renderer/ShaderDescriptor.cpp
-               Renderer/GL/GLCommon.cpp
-               Renderer/GL/GLHashTable.cpp
-               Renderer/GL/GLStateManager.cpp
-               Renderer/GL/GLFBOTex.cpp
-               Renderer/GL/GLFrameCapture.cpp
-               Renderer/GL/GLRaycaster.cpp
-               Renderer/GL/GLGPURayTraverser.cpp
-               Renderer/GL/GLRenderer.cpp
-               Renderer/GL/GLSBVR.cpp
-               Renderer/GL/GLSBVR2D.cpp
-               Renderer/GL/GLSLProgram.cpp
-               Renderer/GL/GLTargetBinder.cpp
-               Renderer/GL/GLTexture1D.cpp
-               Renderer/GL/GLTexture2D.cpp
-               Renderer/GL/GLTexture3D.cpp
-               Renderer/GL/GLTexture.cpp
-               Renderer/GL/GLVolume.cpp
-               Renderer/GL/GLVolume2DTex.cpp
-               Renderer/GL/GLVolume3DTex.cpp
-               Renderer/GL/RenderMeshGL.cpp
-               Renderer/GL/GLGridLeaper.cpp
-               Renderer/GL/GLVolumePool.cpp
-               Renderer/GL/GLVBO.cpp
-               Renderer/GPUMemMan/GPUMemMan.cpp
-               Renderer/GPUMemMan/GPUMemManDataStructs.cpp
-               Renderer/SBVRGeogen.cpp
-               Renderer/SBVRGeogen2D.cpp
-               Renderer/SBVRGeogen3D.cpp
-               Renderer/RenderMesh.cpp
-               Renderer/RenderRegion.cpp
-               Renderer/TFScaling.cpp
-               Renderer/VisibilityState.cpp
-               Basics/LargeFileFD.cpp
-               Basics/LargeFileMMap.cpp
                IO/3rdParty/tiff/tif_unix.c
                )

@@ -30,9 +30,7 @@ include_directories( ${CMAKE_SOURCE_DIR}
                      Basics
                      Controller
                      DebugOut
-                     Renderer
                      Scripting
-                     3rdParty/GLEW
                      IO
                      IO/UVF
                      IO/3rdParty/boost

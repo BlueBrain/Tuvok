@@ -83,18 +83,6 @@ struct RendererState {
  * provided by Controller::Instance(). */
 class MasterController : public PerfQueryable {
 public:
-  enum EVolumeRendererType {
-    OPENGL_SBVR = 0,
-    OPENGL_RAYCASTER,
-    DIRECTX_SBVR,
-    DIRECTX_RAYCASTER,
-    OPENGL_2DSBVR,
-    DIRECTX_2DSBVR,
-    OPENGL_GRIDLEAPER,
-    DIRECTX_GRIDLEAPER,
-    OPENGL_CHOOSE, ///< let the system choose for the user
-    RENDERER_LAST,
-  };
 
   /// Defaults to using a Console-based debug output stream.
   MasterController();
@@ -123,14 +111,6 @@ public:
   const AbstrDebugOut *DebugOut() const;
   ///@}
 
-
-  /// The GPU memory manager moves data from CPU to GPU memory, and
-  /// removes data from GPU memory.
-  ///@{
-  GPUMemMan*       MemMan()       { return m_pGPUMemMan; }
-  const GPUMemMan* MemMan() const { return m_pGPUMemMan; }
-  ///@}
-
   /// The IO manager is responsible for loading data into host memory.
   ///@{
   IOManager*       IOMan()       { return m_pIOManager;}
@@ -148,22 +128,6 @@ public:
   /// users.
   bool ExperimentalFeatures() const;
   void ExperimentalFeatures(bool b);
-
-
-  /// Indicate that a renderer is no longer needed.
-  /// This is now called from Abstract renderer's destructor.
-  /// All LuaClassInstances should be destroyed with the destroyClass lua call.
-  /// @{
-  void ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer);
-  void ReleaseVolumeRenderer(LuaClassInstance pVolumeRenderer);
-  /// @}
-
-  void SetMaxGPUMem(uint64_t megs);
-  void SetMaxCPUMem(uint64_t megs);
-
-  /// return max mem in megabyte
-  uint64_t GetMaxGPUMem() const;
-  uint64_t GetMaxCPUMem() const;
 
   /// centralized storage for renderer parameters
   ///@{
@@ -189,32 +153,9 @@ private:
   /// Initializer; add all our builtin commands.
   void RegisterLuaCommands();
 
-  RenderRegion* LuaCreateRenderRegion3D(LuaClassInstance ren);
-  RenderRegion* LuaCreateRenderRegion2D(int mode,  // RenderRegion::EWindowMode
-                                        uint64_t sliceIndex,
-                                        LuaClassInstance ren);
-
-  /// Helper function for RegisterLuaCommands. Helps in setting up the renderer
-  /// types table in tuvok.renderer.
-  void AddLuaRendererType(const std::string& rendererLoc,
-                          const std::string& rendererName,
-                          int value);
-
-  //--------------
-  // Lua commands
-  //--------------
-
-  /// Creates a new volume renderer.
-  /// Used as a constructor function for Lua classes.
-  AbstrRenderer* RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
-                                          bool bUseOnlyPowerOfTwo,
-                                          bool bDownSampleTo8Bits,
-                                          bool bDisableBorder,
-                                          bool bBiasAndScaleTF);
 
 private:
   SystemInfo*      m_pSystemInfo;
-  GPUMemMan*       m_pGPUMemMan;
   IOManager*       m_pIOManager;
   MultiplexOut     m_DebugOut;
   ConsoleOut       m_DefaultOut;
@@ -224,10 +165,6 @@ private:
   std::shared_ptr<LuaScripting>       m_pLuaScript;
   std::unique_ptr<LuaMemberReg>       m_pMemReg;
   std::unique_ptr<LuaIOManagerProxy>  m_pIOProxy; 
-
-  AbstrRendererList m_vVolumeRenderer;
-  // The active renderer should point into a member of the renderer list.
-  AbstrRenderer*   m_pActiveRenderer;
 
   /// for PerfCounter tracking.
   double m_Perf[PERF_END];

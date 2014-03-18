@@ -44,11 +44,6 @@
 #include "../IO/TransferFunction1D.h"
 #include "../IO/Dataset.h"
 #include "../IO/AbstrConverter.h"
-#include "../Renderer/GPUMemMan/GPUMemMan.h"
-#include "../Renderer/GL/GLRaycaster.h"
-#include "../Renderer/GL/GLGridLeaper.h"
-#include "../Renderer/GL/GLSBVR.h"
-#include "../Renderer/GL/GLSBVR2D.h"
 
 #include "../LuaScripting/LuaScripting.h"
 #include "../LuaScripting/LuaMemberReg.h"
@@ -65,17 +60,12 @@ MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
   m_bExperimentalFeatures(false),
   m_pLuaScript(new LuaScripting()),
-  m_pMemReg(new LuaMemberReg(m_pLuaScript)),
-  m_pActiveRenderer(NULL)
+  m_pMemReg(new LuaMemberReg(m_pLuaScript))
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
-  m_pGPUMemMan    = new GPUMemMan(this);
 
   using namespace std::placeholders;
-  std::function<Dataset*(const std::string&, AbstrRenderer*)> f =
-    std::bind(&GPUMemMan::LoadDataset, m_pGPUMemMan, _1, _2);
-  m_pIOManager->SetMemManLoadFunction(f);
 
   RegisterLuaCommands();
 
@@ -97,16 +87,11 @@ MasterController::~MasterController() {
 }
 
 void MasterController::Cleanup() {
-  std::for_each(m_vVolumeRenderer.begin(), m_vVolumeRenderer.end(),
-                [](AbstrRenderer* i) { delete i; });
-  m_vVolumeRenderer.clear();
+
   delete m_pSystemInfo;
   m_pSystemInfo = NULL;
   delete m_pIOManager;
   m_pIOManager = NULL;
-  delete m_pGPUMemMan;
-  m_pGPUMemMan = NULL;
-  m_pActiveRenderer = NULL;
 }
 
 
@@ -138,140 +123,6 @@ const AbstrDebugOut *MasterController::DebugOut() const {
   return (m_DebugOut.empty())
            ? static_cast<const AbstrDebugOut*>(&m_DefaultOut)
            : static_cast<const AbstrDebugOut*>(&m_DebugOut);
-}
-
-
-AbstrRenderer*
-MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
-                                           bool bUseOnlyPowerOfTwo,
-                                           bool bDownSampleTo8Bits,
-                                           bool bDisableBorder,
-                                           bool bBiasAndScaleTF) {
-  std::string api;
-  std::string method;
-  AbstrRenderer *retval;
-
-  switch (eRendererType) {
-  case OPENGL_SBVR :
-    api = "OpenGL";
-    method = "Slice-Based Volume Renderer";
-    retval = new GLSBVR(this,
-                        bUseOnlyPowerOfTwo,
-                        bDownSampleTo8Bits,
-                        bDisableBorder);
-    break;
-
-  case OPENGL_CHOOSE: // we just need to make something up, will fix later
-  case OPENGL_2DSBVR:
-    api = "OpenGL";
-    method = "Axis-Aligned 2D Slice-Based Volume Renderer";
-    retval = new GLSBVR2D(this,
-                          bUseOnlyPowerOfTwo,
-                          bDownSampleTo8Bits,
-                          bDisableBorder);
-    break;
-
-  case OPENGL_RAYCASTER :
-    api = "OpenGL";
-    method = "Raycaster";
-    retval = new GLRaycaster(this,
-                             bUseOnlyPowerOfTwo,
-                             bDownSampleTo8Bits,
-                             bDisableBorder);
-    break;
-  case OPENGL_GRIDLEAPER :
-    api = "OpenGL";
-    method = "Grid Leaper";
-    retval = new GLGridLeaper(this,
-                             bUseOnlyPowerOfTwo,
-                             bDownSampleTo8Bits,
-                             bDisableBorder);
-    break;
-
-  case DIRECTX_RAYCASTER :
-  case DIRECTX_2DSBVR :
-  case DIRECTX_SBVR :
-  case DIRECTX_GRIDLEAPER:
-    m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
-                            "Please select OpenGL as the render API "
-                            "in the settings dialog.");
-    return NULL;
-
-  default :
-    m_DebugOut.Error(_func_, "Unsupported Volume renderer requested");
-    return NULL;
-  };
-
-  m_DebugOut.Message(_func_, "Starting up new renderer (API=%s, Method=%s)",
-                     api.c_str(), method.c_str());
-  if(bBiasAndScaleTF) {
-    retval->SetScalingMethod(AbstrRenderer::SMETH_BIAS_AND_SCALE);
-  }
-  m_vVolumeRenderer.push_back(retval);
-  return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
-}
-
-void MasterController::ReleaseVolumeRenderer(LuaClassInstance pRenderer)
-{
-  ReleaseVolumeRenderer(pRenderer.getRawPointer<AbstrRenderer>(LuaScript()));
-}
-
-void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
-  // Note: Even if this function is called from deleteClass inside lua, it is
-  // still safe to check whether the pointer exists inside of lua. The pointer
-  // in the pointer lookup table is always removed before deletion of the
-  // pointer itself.
-  LuaClassInstance inst;
-  try {
-    inst = LuaScript()->getLuaClassInstance(pVolumeRenderer);
-  }
-  catch (LuaNonExistantClassInstancePointer&) {
-    // Ignore it. This more than likely means we are inside of the class'
-    // destructor.
-  }
-
-  bool foundRenderer = false;
-
-  for(auto i = m_vVolumeRenderer.begin(); i != m_vVolumeRenderer.end(); ++i) {
-    if (*i == pVolumeRenderer) {
-      foundRenderer = true;
-      m_DebugOut.Message(_func_, "Removing volume renderer");
-      m_vVolumeRenderer.erase(i);
-      break;
-    }
-  }
-
-  // Only warn if we did find the instance in lua, but didn't find it in our
-  // abstract renderer list.
-  if (foundRenderer == false && inst.isValid(LuaScript()))
-    m_DebugOut.Warning(_func_, "requested volume renderer not found");
-
-  // Delete the class if it hasn't been already. This covers the case where
-  // the class calls ReleaseVolumeRenderer instead of calling deleteClass.
-  if (inst.isValid(LuaScript()))
-    LuaScript()->cexec("deleteClass", inst);
-}
-
-
-RenderRegion* MasterController::LuaCreateRenderRegion3D(LuaClassInstance ren) {
-  return new RenderRegion3D(ren.getRawPointer<AbstrRenderer>(LuaScript()));
-}
-
-RenderRegion* MasterController::LuaCreateRenderRegion2D(
-    int mode,
-    uint64_t sliceIndex,
-    LuaClassInstance ren) {
-  return new RenderRegion2D(static_cast<RenderRegion::EWindowMode>(mode),
-                            sliceIndex,
-                            ren.getRawPointer<AbstrRenderer>(LuaScript()));
-}
-
-void MasterController::AddLuaRendererType(const std::string& rendererLoc,
-                                          const std::string& rendererName,
-                                          int value) {
-  std::ostringstream os;
-  os << rendererLoc << ".types." << rendererName << "=" << value;
-  LuaScript()->exec(os.str());
 }
 
 void MasterController::SetBrickStrategy(size_t strat) {
@@ -314,28 +165,6 @@ void MasterController::IncrementPerfCounter(enum PerfCounter pc,
   m_Perf[pc] += amount;
 }
 
-void MasterController::SetMaxGPUMem(uint64_t megs) {
-  const uint64_t megabyte = 1024 * 1024;
-  m_pSystemInfo->SetMaxUsableGPUMem(megabyte * megs);
-  m_pGPUMemMan->MemSizesChanged();
-}
-
-void MasterController::SetMaxCPUMem(uint64_t megs) {
-  const uint64_t megabyte = 1024 * 1024;
-  m_pSystemInfo->SetMaxUsableCPUMem(megabyte * megs);
-  m_pGPUMemMan->MemSizesChanged();
-}
-
-uint64_t MasterController::GetMaxGPUMem() const {
-  const uint64_t megabyte = 1024 * 1024;
-  return m_pSystemInfo->GetMaxUsableGPUMem() / megabyte;
-}
-
-uint64_t MasterController::GetMaxCPUMem() const {
-  const uint64_t megabyte = 1024 * 1024;
-  return m_pSystemInfo->GetMaxUsableCPUMem() / megabyte;
-}
-
 void register_unsigned(lua_State* lua, const char* name, unsigned value) {
   lua_pushinteger(lua, value);
   lua_setglobal(lua, name);
@@ -376,55 +205,6 @@ void register_perf_enum(std::shared_ptr<LuaScripting>& ss) {
 void MasterController::RegisterLuaCommands() {
   std::shared_ptr<LuaScripting> ss = LuaScript();
 
-  // Register volume renderer class.
-  std::string renderer = "tuvok.renderer";
-  ss->registerClass<AbstrRenderer>(
-      this,
-      &MasterController::RequestNewVolumeRenderer,
-      renderer,
-      "Constructs a new renderer. The first parameter is one "
-      "of the values in the tuvok.renderer.types table.",
-      LuaClassRegCallback<AbstrRenderer>::Type(
-          AbstrRenderer::RegisterLuaFunctions));
-
-  tuvok::Registrar::dataset(ss);
-
-  // Populate the tuvok.renderer.type table.
-  ss->exec(renderer + ".types = {}");
-
-  AddLuaRendererType(renderer, "OpenGL_SBVR", OPENGL_SBVR);
-  AddLuaRendererType(renderer, "OpenGL_2DSBVR", OPENGL_2DSBVR);
-  AddLuaRendererType(renderer, "OpenGL_Raycaster", OPENGL_RAYCASTER);
-  AddLuaRendererType(renderer, "OpenGL_GridLeaper", OPENGL_GRIDLEAPER);
-
-  AddLuaRendererType(renderer, "DirectX_SBVR", DIRECTX_SBVR);
-  AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
-  AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
-  AddLuaRendererType(renderer, "DirectX_GridLeaper", DIRECTX_GRIDLEAPER);
-
-  AddLuaRendererType(renderer, "RT_Interactive", AbstrRenderer::RT_INTERACTIVE);
-  AddLuaRendererType(renderer, "RT_Capture", AbstrRenderer::RT_CAPTURE);
-  AddLuaRendererType(renderer, "RT_Headless", AbstrRenderer::RT_HEADLESS);
-
-  // Register RenderRegion3D.
-  ss->registerClass<RenderRegion>(this,
-      &MasterController::LuaCreateRenderRegion3D,
-      "tuvok.renderRegion3D",
-      "Constructs a 3D render region.",
-      LuaClassRegCallback<RenderRegion>::Type(
-          RenderRegion::defineLuaInterface));
-
-  // Register RenderRegion2D.
-  ss->registerClass<RenderRegion>(this,
-      &MasterController::LuaCreateRenderRegion2D,
-      "tuvok.renderRegion2D",
-      "Constructs a 2D render region.",
-      LuaClassRegCallback<RenderRegion>::Type(
-          RenderRegion::defineLuaInterface));
-  ss->addParamInfo("tuvok.renderRegion2D.new", 0, "mode",
-                   "Specifies viewing axis.");
-  ss->addParamInfo("tuvok.renderRegion2D.new", 1, "sliceIndex",
-                   "Index of slice to view.");
 
   // Register dataset proxy
   ss->registerClassStatic<LuaDatasetProxy>(
@@ -463,22 +243,6 @@ void MasterController::RegisterLuaCommands() {
     &MasterController::SetRehashCount, "tuvok.state.rehashCount", "",
     false
   );
-  m_pMemReg->registerFunction(this,
-    &MasterController::SetMaxGPUMem, "tuvok.state.gpuMem",
-    "sets a new max amount of GPU memory.  In megabytes.", false
-  );
-  m_pMemReg->registerFunction(this,
-    &MasterController::SetMaxCPUMem, "tuvok.state.cpuMem",
-    "sets a new max amount of CPU memory.  In megabytes.", false
-  );
-  m_pMemReg->registerFunction(this,
-    &MasterController::GetMaxGPUMem, "tuvok.state.getGpuMem",
-    "gets the max amount of GPU memory.  In megabytes.", false
-    );
-  m_pMemReg->registerFunction(this,
-    &MasterController::GetMaxCPUMem, "tuvok.state.getCpuMem",
-    "gets the max amount of CPU memory.  In megabytes.", false
-    );
   m_pMemReg->registerFunction(this, &MasterController::SetMDUpdateStrategy,
     "tuvok.state.mdUpdateStrategy", "control the background metadata update "
     "thread.\n  0: enabled (default)\n  1: async thread does nothing\n  2: "
