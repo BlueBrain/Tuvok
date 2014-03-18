@@ -152,6 +152,15 @@ unsigned MasterController::GetHTSize() const {
   return this->RState.HashTableSize;
 }
 
+uint64_t MasterController::GetMaxCPUMem() const {
+  const uint64_t megabyte = 1024 * 1024;
+  return m_pSystemInfo->GetMaxUsableCPUMem() / megabyte;
+}
+
+void MasterController::SetMaxCPUMem(uint64_t megs) {
+  const uint64_t megabyte = 1024 * 1024;
+  m_pSystemInfo->SetMaxUsableCPUMem(megabyte * megs);
+}
 
 double MasterController::PerfQuery(enum PerfCounter pc) {
   assert(pc < PERF_END);

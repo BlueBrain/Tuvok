@@ -141,6 +141,11 @@ public:
   unsigned GetMDUpdateStrategy() const;
   unsigned GetHTSize() const;
 
+  void SetMaxCPUMem(uint64_t megs);
+
+  /// return max mem in megabyte
+  uint64_t GetMaxCPUMem() const;
+
   RendererState RState;
   ///@}
 
