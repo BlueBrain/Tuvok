@@ -30,7 +30,6 @@ include_directories( ${CMAKE_SOURCE_DIR}
                      Basics
                      Controller
                      DebugOut
-                     Renderer
                      Scripting
                      IO
                      IO/UVF

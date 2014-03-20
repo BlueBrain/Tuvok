@@ -45,8 +45,6 @@
 #include "../../Basics/Vectors.h"
 #include "../../Basics/Plane.h"
 #include "../../StdTuvokDefines.h"
-#include "../../Renderer/AbstrRenderer.h"
-#include "../../Renderer/RenderRegion.h"
 #include "../../Controller/MasterController.h"
 #include "LuaDatasetProxy.h"
 
@@ -1002,19 +1000,7 @@ public:
 // namespace, so they must be outside of the tuvok namespace.
 // TODO: Embelish on this standard enumeration. Should be able to indicate
 //       what values are present in the renderer.
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererType)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERenderMode)
-
-TUVOK_LUA_REGISTER_ENUM_TYPE(Interpolant)
 
 TUVOK_LUA_REGISTER_ENUM_TYPE(LuaDatasetProxy::DatasetType)
-
-TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
-
-TUVOK_LUA_REGISTER_ENUM_TYPE(RenderRegion::EWindowMode)
 
 #endif /* LUATUVOKSPECIFICTYPES_H_ */
