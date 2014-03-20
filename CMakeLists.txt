@@ -72,18 +72,6 @@ install( TARGETS TuvokExpressions LIBRARY DESTINATION lib )
 # Tuvok library
 include(files.cmake)
 
-if(GLEW_MX_FOUND)
-  include_directories(BEFORE SYSTEM ${GLEW_MX_INCLUDE_DIRS})
-  list(APPEND LINK_LIBRARIES ${GLEW_MX_LIBRARIES})
-else()
-  include_directories(3rdParty/GLEW)
-  add_definitions(-DGLEW_STATIC=1)
-  list(APPEND TUVOK_HEADERS 3rdParty/GLEW/GL/glew.h
-    3rdParty/GLEW/GL/glxew.h 3rdParty/GLEW/GL/wglew.h)
-  list(APPEND TUVOK_SRCS 3rdParty/GLEW/GL/glew.c)
-endif()
-add_definitions(-DGLEW_MX=1)
-
 if( SHARED_LIBRARY )
    add_library( Tuvok SHARED ${TUVOK_SRCS} )
 else( SHARED_LIBRARY )
