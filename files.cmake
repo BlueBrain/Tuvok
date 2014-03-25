@@ -225,7 +225,6 @@ set( TUVOK_HEADERS  StdTuvokDefines.h
                     LuaScripting/TuvokSpecific/MatrixMath.h
                     )
 
-
 set(TUVOK_SRCS 3rdParty/LUA/lapi.cpp
                3rdParty/LUA/lauxlib.cpp
                3rdParty/LUA/lbaselib.cpp

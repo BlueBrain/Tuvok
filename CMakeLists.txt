@@ -45,13 +45,13 @@ include_directories( ${CMAKE_SOURCE_DIR}
                      IO/expressions
                      ${QT_INCLUDE_DIR} )
 
+set( LINK_LIBRARIES pthread ${QT_QTOPENGL_LIBRARY} ${QT_QTGUI_LIBRARY}
+  ${QT_QTCORE_LIBRARY} ${ZLIB_LIBRARY} ${OPENMP_LIBRARY} ${OPENGL_LIBRARY} )
+
 if( ${CMAKE_COMPILER_IS_GNUCXX} )
   set(CMAKE_C_FLAGS "")
   set(CMAKE_CXX_FLAGS "-std=c++0x -fno-strict-aliasing -fopenmp" )
 endif( ${CMAKE_COMPILER_IS_GNUCXX} )
-
-find_package( BISON REQUIRED )
-find_package( FLEX REQUIRED )
 
 # Expressions library
 BISON_TARGET( Parser IO/expressions/tvk-parse.ypp ${CMAKE_BINARY_DIR}/tvk-parse.cpp)
@@ -71,6 +71,7 @@ install( TARGETS TuvokExpressions LIBRARY DESTINATION lib )
 
 # Tuvok library
 include(files.cmake)
+
 if( SHARED_LIBRARY )
    add_library( Tuvok SHARED ${TUVOK_SRCS} )
 else( SHARED_LIBRARY )
@@ -81,13 +82,7 @@ include(InstallFiles)
 install_files(include/Tuvok FILES ${TUVOK_HEADERS})
 
 # TODO external packages should be explicit
-target_link_libraries( Tuvok TuvokExpressions ${QT_QTOPENGL_LIBRARY}
-                                              ${QT_QTGUI_LIBRARY}
-                                              ${QT_QTCORE_LIBRARY}
-                                              ${ZLIB_LIBRARY}
-                                              ${OPENMP_LIBRARY}
-                                              ${OPENGL_LIBRARY}
-                                              pthread )
+target_link_libraries( Tuvok TuvokExpressions ${LINK_LIBRARIES} )
 
 set_target_properties( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
