@@ -1,28 +1,25 @@
 # Minumum build script for building the Tuvok library needed for Volume Renderer
 
-cmake_minimum_required( VERSION 2.8 )
-project( Tuvok )
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake )
-if( NOT BUILDYARD )
-  include( Buildyard )
-  return( )
-endif( )
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(Tuvok)
 
-set(RELEASE_VERSION OFF) # OFF or ABI version
-set(LAST_RELEASE 3.0.0)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
+  ${CMAKE_SOURCE_DIR}/CMake/common)
+
+include(GitExternal)
+
 set(VERSION_MAJOR "3")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
+set(VERSION_ABI 3) # OFF or ABI version
+
+set(PROJECT_namespace tuvok)
+set(PROJECT_INCLUDE_NAME Tuvok)
+set(TUVOK_DESCRIPTION "Largescale Volume Data Access Library")
+set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 
 include(Common)
-
-set(PROJECT_INCLUDE_NAME Tuvok)
 include(FindPackages)
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
 
 option(SHARED_LIBRARY "Shared library" ON)
 
@@ -45,12 +42,12 @@ include_directories( ${CMAKE_SOURCE_DIR}
                      IO/expressions
                      ${QT_INCLUDE_DIR} )
 
-set( LINK_LIBRARIES pthread ${QT_QTOPENGL_LIBRARY} ${QT_QTGUI_LIBRARY}
-  ${QT_QTCORE_LIBRARY} ${ZLIB_LIBRARY} ${OPENMP_LIBRARY} ${OPENGL_LIBRARY} )
+set( LINK_LIBRARIES pthread ${Qt5Widgets_LIBRARIES} ${ZLIB_LIBRARY}
+                            ${OPENMP_LIBRARY} ${OPENGL_LIBRARY} )
 
 if( ${CMAKE_COMPILER_IS_GNUCXX} )
   set(CMAKE_C_FLAGS "")
-  set(CMAKE_CXX_FLAGS "-std=c++0x -fno-strict-aliasing -fopenmp" )
+  set(CMAKE_CXX_FLAGS "-std=c++11 -fno-strict-aliasing -fopenmp" )
 endif( ${CMAKE_COMPILER_IS_GNUCXX} )
 
 # Expressions library
@@ -87,5 +84,4 @@ target_link_libraries( Tuvok TuvokExpressions ${LINK_LIBRARIES} )
 set_target_properties( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
 
-include(CPackConfig)
-include(PackageConfig)
+
