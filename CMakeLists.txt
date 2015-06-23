@@ -19,7 +19,15 @@ set(TUVOK_DESCRIPTION "Largescale Volume Data Access Library")
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 
 include(Common)
-include(FindPackages)
+
+common_package(BISON REQUIRED)
+common_package(FLEX REQUIRED)
+common_package(OpenGL REQUIRED)
+common_package(OpenMP)
+common_package(Qt5Core REQUIRED)
+common_package(Qt5OpenGL REQUIRED)
+common_package(ZLIB REQUIRED)
+common_package_post()
 
 option(SHARED_LIBRARY "Shared library" ON)
 
@@ -47,8 +55,8 @@ set( LINK_LIBRARIES pthread ${Qt5Widgets_LIBRARIES} ${ZLIB_LIBRARY}
 
 if( ${CMAKE_COMPILER_IS_GNUCXX} )
   set(CMAKE_C_FLAGS "")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -fno-strict-aliasing -fopenmp" )
-endif( ${CMAKE_COMPILER_IS_GNUCXX} )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing" )
+endif()
 
 # Expressions library
 BISON_TARGET( Parser IO/expressions/tvk-parse.ypp ${CMAKE_BINARY_DIR}/tvk-parse.cpp)
