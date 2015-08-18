@@ -92,4 +92,3 @@ target_link_libraries( Tuvok TuvokExpressions ${LINK_LIBRARIES} )
 set_target_properties( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
 
-include(CPackConfig)
