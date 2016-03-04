@@ -482,7 +482,6 @@ set(TUVOK_SRCS 3rdParty/LUA/lapi.cpp
                IO/UVF/ExtendedOctree/BzlibCompression.cpp
                IO/UVF/ExtendedOctree/LzhamCompression.cpp
                IO/TTIFFWriter/TTIFFWriter.cpp
-               IO/VariantArray.cpp
                IO/VFFConverter.cpp
                IO/XML3DGeoConverter.cpp
                LuaScripting/LuaClassConstructor.cpp

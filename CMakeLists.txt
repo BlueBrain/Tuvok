@@ -52,6 +52,10 @@ include_directories( ${CMAKE_SOURCE_DIR}
 
 set( LINK_LIBRARIES pthread ${Qt5Widgets_LIBRARIES} ${ZLIB_LIBRARY}
                             ${OPENMP_LIBRARY} ${OPENGL_LIBRARY} )
+if(APPLE)
+  find_library(COREFOUNDATION_LIB CoreFoundation)
+  list(APPEND LINK_LIBRARIES ${COREFOUNDATION_LIB})
+endif()
 
 if( ${CMAKE_COMPILER_IS_GNUCXX} )
   set(CMAKE_C_FLAGS "")
@@ -65,6 +69,7 @@ ADD_FLEX_BISON_DEPENDENCY( Scanner Parser )
 
 set( TUVOK_EXPRESSION_SOURCES  ${CMAKE_BINARY_DIR}/tvk-scan.cpp
                                ${CMAKE_BINARY_DIR}/tvk-parse.cpp
+                               IO/VariantArray.cpp
                                IO/expressions/binary-expression.cpp
                                IO/expressions/conditional-expression.cpp
                                IO/expressions/constant.cpp
@@ -89,6 +94,4 @@ install_files(include/Tuvok FILES ${TUVOK_HEADERS})
 # TODO external packages should be explicit
 target_link_libraries( Tuvok TuvokExpressions ${LINK_LIBRARIES} )
 
-set_target_properties( Tuvok PROPERTIES LINK_FLAGS "-Wl,--no-undefined" )
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
-
