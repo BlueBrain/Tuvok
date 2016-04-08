@@ -29,8 +29,6 @@ common_package(Qt5OpenGL REQUIRED)
 common_package(ZLIB REQUIRED)
 common_package_post()
 
-option(SHARED_LIBRARY "Shared library" ON)
-
 include_directories( ${CMAKE_SOURCE_DIR}
                      Basics
                      Controller
@@ -82,11 +80,7 @@ install( TARGETS TuvokExpressions LIBRARY DESTINATION lib )
 # Tuvok library
 include(files.cmake)
 
-if( SHARED_LIBRARY )
-   add_library( Tuvok SHARED ${TUVOK_SRCS} )
-else( SHARED_LIBRARY )
-   add_library( Tuvok ${TUVOK_SRCS})
-endif( SHARED_LIBRARY )
+add_library(Tuvok SHARED ${TUVOK_SRCS})
 
 include(InstallFiles)
 install_files(include/Tuvok FILES ${TUVOK_HEADERS})
