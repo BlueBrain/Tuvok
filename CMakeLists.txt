@@ -1,33 +1,30 @@
 # Minumum build script for building the Tuvok library needed for Volume Renderer
 
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(Tuvok)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project(Tuvok VERSION 3.1.0)
+set(Tuvok_VERSION_ABI 3)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
   ${CMAKE_SOURCE_DIR}/CMake/common)
 
 include(GitExternal)
 
-set(VERSION_MAJOR "3")
-set(VERSION_MINOR "1")
-set(VERSION_PATCH "0")
-set(VERSION_ABI 3) # OFF or ABI version
-
-set(PROJECT_namespace tuvok)
-set(PROJECT_INCLUDE_NAME Tuvok)
+set(TUVOK_namespace tuvok)
+set(TUVOK_INCLUDE_NAME Tuvok)
 set(TUVOK_DESCRIPTION "Largescale Volume Data Access Library")
+set(TUVOK_DEB_DEPENDS libqt5opengl5-dev)
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 
 include(Common)
 
-common_package(BISON REQUIRED)
-common_package(FLEX REQUIRED)
-common_package(OpenGL REQUIRED)
-common_package(OpenMP)
-common_package(Qt5Core REQUIRED)
-common_package(Qt5OpenGL REQUIRED)
-common_package(ZLIB REQUIRED)
-common_package_post()
+common_find_package(BISON REQUIRED)
+common_find_package(FLEX REQUIRED)
+common_find_package(OpenGL REQUIRED)
+common_find_package(OpenMP)
+common_find_package(Qt5Core REQUIRED)
+common_find_package(Qt5OpenGL REQUIRED)
+common_find_package(ZLIB REQUIRED)
+common_find_package_post()
 
 include_directories( ${CMAKE_SOURCE_DIR}
                      Basics
@@ -75,6 +72,8 @@ set( TUVOK_EXPRESSION_SOURCES  ${CMAKE_BINARY_DIR}/tvk-scan.cpp
                                IO/expressions/volume.cpp )
 
 add_library( TuvokExpressions SHARED ${TUVOK_EXPRESSION_SOURCES} )
+set_property( TARGET TuvokExpressions PROPERTY CXX_STANDARD 11 )
+target_include_directories( TuvokExpressions PUBLIC ${PROJECT_SOURCE_DIR} )
 install( TARGETS TuvokExpressions LIBRARY DESTINATION lib )
 
 # Tuvok library
@@ -87,5 +86,7 @@ install_files(include/Tuvok FILES ${TUVOK_HEADERS})
 
 # TODO external packages should be explicit
 target_link_libraries( Tuvok TuvokExpressions ${LINK_LIBRARIES} )
+set_property( TARGET Tuvok PROPERTY CXX_STANDARD 11 )
+target_include_directories( Tuvok PUBLIC ${PROJECT_SOURCE_DIR} )
 
 install( TARGETS Tuvok LIBRARY DESTINATION lib )
